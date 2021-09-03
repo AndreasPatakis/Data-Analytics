@@ -1,15 +1,22 @@
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+
 
 """
     TO-DO:
         Z-SCORE=DONE,
-        STANDARD-DEVIATION,
-        STANDARIZATION-NORMALIZATION,
+        STANDARIZATION-NORMALIZATION=DONE,
         PCA,
-        SAVE PLOTS IN A FOLDER
+        SAVE PLOTS IN A FOLDER=DONE
 """
+
+"""CONSTANTS"""
+BEFORE = '_WITH_OUTLIERS'
+AFTER = '_WITHOUT_OUTLIERS'
+
 def get_missing_null_nan(df,remove=False):
     """Find out how many null, missing or nan values we have. Drop them if remove==True"""
     for y,col in enumerate(df.columns):
@@ -36,18 +43,29 @@ def boxplot_features(df):
         ax.set_title('Feature: '+col)
         plt.show()
 
-def hist_features(df):
+def hist_features(df, plot=True,save=False):
     """Plot the histograms of the all features"""
+
+    parent_dir = './Plots'
+    if save:
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+
     for col in df.columns:
+        path = '/'+col+'_HIST'
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.hist(df[col], bins=100, edgecolor='black')
         ax.set_title('Feature: '+col)
         ax.set_xlabel('Range of Values')
         ax.set_ylabel('Num of Observations')
-        plt.show()
+        if save:
+            print("Saving histogram of feature: ",col)
+            plt.savefig(parent_dir+'/'+col+path)
+        if plot:
+            plt.show()
 
-def quantile_outliers(df, remove=False, plot=False):
+def quantile_outliers(df, remove=False, plot=False, save=False):
     def get_IQR(df,col):
         """Returns the Interquartile Range of our set"""
         first_quartile = df[col].quantile(0.25)
@@ -65,6 +83,10 @@ def quantile_outliers(df, remove=False, plot=False):
         return lower_fence_sum_quartile,1-upper_fence_sum_quartile
 
     """Removing outliers greater than Upper_Fence and lower than Lower_Fence"""
+    parent_dir = './Plots'
+    if save:
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
     for col in df.columns:
         min_q, max_q = get_thresholds(df,col)
         quartile_max = df[col].quantile(max_q)
@@ -73,11 +95,17 @@ def quantile_outliers(df, remove=False, plot=False):
         print("Number of values greater than {} quantile: {}".format(max_q,np.sum(df[col]>quartile_max)))
         print("Number of values lower than {} quantile: {}".format(min_q,np.sum(df[col]<quartile_min)))
 
-        if plot:
+        if plot or save:
             fig = plt.figure()
             ax = fig.add_subplot(111)
             ax.boxplot(df[col])
-            ax.set_title(col+' BEFORE REMOVING OUTLIERS')
+            ax.set_title(col+BEFORE)
+            feature_folder = os.path.join(parent_dir+'/'+col)
+            if save:
+                if not os.path.exists(feature_folder):
+                    os.makedirs(feature_folder)
+                    feature_folder_path = feature_folder+'/'+col
+                plt.savefig(feature_folder_path+BEFORE)
 
         if remove:
             print("OBSERVATIONS BEFORE: ",len(df[col]))
@@ -85,12 +113,15 @@ def quantile_outliers(df, remove=False, plot=False):
             df = df[df[col] >= quartile_min]
             print("OBSERVATIONS AFTER: {}\n".format(len(df[col])))
 
-            if plot:
+            if plot or save:
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
                 ax.boxplot(df[col], sym='')
-                ax.set_title(col+' AFTER REMOVING OUTLIERS')
-        plt.show()
+                ax.set_title(col+AFTER)
+                if save:
+                    plt.savefig(feature_folder_path+AFTER)
+                if plot:
+                    plt.show()
 
 def z_score_outliers(df, k=3, remove=False):
     """Returns stats about the outliers detected based on z_score. Drops them if remove==True"""
@@ -111,7 +142,11 @@ def z_score_outliers(df, k=3, remove=False):
             df = df.drop(['z_score'], axis=1)
             print("Num of Observations after removing outliers: ",len(df))
 
-
+def normalize(df):
+    """Using MinMaxScaler to normalize our data"""
+    scaler = MinMaxScaler()
+    df[df.columns] = scaler.fit_transform(df[df.columns])
+    return df
 
 
 
@@ -133,9 +168,13 @@ if __name__ == '__main__':
     df = remove_duplicates(df)
 
     """Find and remove outliers"""
-    #quantile_outliers(df,remove=True, plot=False)
+    #quantile_outliers(df,remove=True, plot=False, save=True)
 
     #hist_features(df)
     #df['LB'].hist(bins=100, edgecolor='black')
-    z_score_outliers(df, remove=True)
-    #hist_features(df)
+    #z_score_outliers(df, remove=True)
+    hist_features(df,plot=False,save=True)
+
+    #df = normalize(df)
+
+    print(df.head())
