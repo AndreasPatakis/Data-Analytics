@@ -16,10 +16,11 @@ from sklearn.preprocessing import MinMaxScaler
 """CONSTANTS"""
 BEFORE = '_WITH_OUTLIERS'
 AFTER = '_WITHOUT_OUTLIERS'
+parent_dir = './Plots'
 
 def get_missing_null_nan(df,remove=False):
     """Find out how many null, missing or nan values we have. Drop them if remove==True"""
-    for y,col in enumerate(df.columns):
+    for col in df.columns:
         missing_values = np.size(np.where(pd.isnull(df[col])))
         print('{} : {} / {} are null,missing or nan'.format(col, missing_values, len(df)))
     if remove:
@@ -33,8 +34,8 @@ def remove_duplicates(df):
     print("Data left: {}\n".format(len(df)))
     return df
 
-def boxplot_features(df):
-    for col in df.columns:
+def boxplot_features(df,features):
+    for col in features:
         print('\nStats for class label: {}.'.format(col))
         print(df[col].describe())
         fig = plt.figure()
@@ -43,15 +44,14 @@ def boxplot_features(df):
         ax.set_title('Feature: '+col)
         plt.show()
 
-def hist_features(df, plot=True,save=False):
+def hist_features(df,features, plot=True,save=False):
     """Plot the histograms of the all features"""
 
-    parent_dir = './Plots'
     if save:
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
 
-    for col in df.columns:
+    for col in features:
         path = '/'+col+'_HIST'
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -65,7 +65,7 @@ def hist_features(df, plot=True,save=False):
         if plot:
             plt.show()
 
-def quantile_outliers(df, remove=False, plot=False, save=False):
+def quantile_outliers(df,features, remove=False, plot=False, save=False):
     def get_IQR(df,col):
         """Returns the Interquartile Range of our set"""
         first_quartile = df[col].quantile(0.25)
@@ -83,11 +83,10 @@ def quantile_outliers(df, remove=False, plot=False, save=False):
         return lower_fence_sum_quartile,1-upper_fence_sum_quartile
 
     """Removing outliers greater than Upper_Fence and lower than Lower_Fence"""
-    parent_dir = './Plots'
     if save:
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
-    for col in df.columns:
+    for col in features:
         min_q, max_q = get_thresholds(df,col)
         quartile_max = df[col].quantile(max_q)
         quartile_min = df[col].quantile(min_q)
@@ -104,7 +103,7 @@ def quantile_outliers(df, remove=False, plot=False, save=False):
             if save:
                 if not os.path.exists(feature_folder):
                     os.makedirs(feature_folder)
-                    feature_folder_path = feature_folder+'/'+col
+                feature_folder_path = feature_folder+'/'+col
                 plt.savefig(feature_folder_path+BEFORE)
 
         if remove:
@@ -122,10 +121,11 @@ def quantile_outliers(df, remove=False, plot=False, save=False):
                     plt.savefig(feature_folder_path+AFTER)
                 if plot:
                     plt.show()
+    return df
 
-def z_score_outliers(df, k=3, remove=False):
+def z_score_outliers(df,features, k=3, remove=False):
     """Returns stats about the outliers detected based on z_score. Drops them if remove==True"""
-    for col in df.columns:
+    for col in features:
         print("\nFor feature {}: ".format(col))
         mean = df[col].mean()
         std = df[col].std(axis=0, skipna=True)
@@ -142,10 +142,10 @@ def z_score_outliers(df, k=3, remove=False):
             df = df.drop(['z_score'], axis=1)
             print("Num of Observations after removing outliers: ",len(df))
 
-def normalize(df):
+def normalize(df,features):
     """Using MinMaxScaler to normalize our data"""
     scaler = MinMaxScaler()
-    df[df.columns] = scaler.fit_transform(df[df.columns])
+    df[features] = scaler.fit_transform(df[features])
     return df
 
 
@@ -153,28 +153,28 @@ def normalize(df):
 if __name__ == '__main__':
     """Loading the data"""
     df = pd.read_excel('Data/OriginalCTG.xls','Data')
-    df = df.iloc[:,10:31]
+    df = df.iloc[:,10:]
     df.columns = df.iloc[0,:]
     df = df.drop(df.index[0])
+    features = ['LB','AC','FM','UC','DL','DS','DP','ASTV','MSTV','ALTV','MLTV','Width','Min','Max','Nmax','Nzeros','Mode','Mean','Median','Variance','Tendency']
+    features_with_classes = features + ['CLASS', 'NSP']
+    df = df[features_with_classes]
 
-    print(len(df))
 
     """Printing and removing missing, null and nan values"""
-    #get_missing_null_nan(df)
-    df = get_missing_null_nan(df, remove=True)
-    # get_missing_null_nan(df)
+    df = get_missing_null_nan(df,remove=True)
 
     """Removing duplicated values"""
     df = remove_duplicates(df)
 
     """Find and remove outliers"""
-    #quantile_outliers(df,remove=True, plot=False, save=True)
+    #df = quantile_outliers(df,features=features,remove=True, plot=False, save=True)
 
     #hist_features(df)
     #df['LB'].hist(bins=100, edgecolor='black')
     #z_score_outliers(df, remove=True)
-    hist_features(df,plot=False,save=True)
+    #hist_features(df,features=features,plot=False,save=True)
 
-    #df = normalize(df)
+    df = normalize(df,features=features)
 
-    print(df.head())
+    df.to_csv('./Data/cleanedCTG.csv',index=False, header=True)
