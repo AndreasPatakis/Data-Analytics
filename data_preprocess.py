@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import PCA
 
 
 """
@@ -148,6 +149,12 @@ def normalize(df,features):
     df[features] = scaler.fit_transform(df[features])
     return df
 
+def pca(df,features,dimentions=3):
+    """Applying Principle Component Analysis to reduce our dimentions to 3"""
+    pca = PCA(n_components=dimentions)
+    pca = pca.fit(df[features])
+    pca_features = pca.transform(df[features])
+    return pd.DataFrame(pca_features)
 
 
 if __name__ == '__main__':
@@ -177,4 +184,14 @@ if __name__ == '__main__':
 
     df = normalize(df,features=features)
 
-    df.to_csv('./Data/cleanedCTG.csv',index=False, header=True)
+    pca_features = pca(df,features)
+    pca_features.index = np.arange(1,len(df)+1)
+    pca_features.columns = ['PCA1', 'PCA2', 'PCA3']
+    pca_features['CLASS'] = df['CLASS']
+    pca_features['NSP'] = df['NSP']
+
+
+    #pca_features.to_csv('./Data/PCA_Features.csv',index=False, header=True)
+
+
+    #df.to_csv('./Data/cleanedCTG.csv',index=False, header=True)
