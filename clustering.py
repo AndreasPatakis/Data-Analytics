@@ -26,6 +26,9 @@ features reduced by PCA."""
 
 from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
 from sklearn.metrics import confusion_matrix,fowlkes_mallows_score,completeness_score
+from mpl_toolkits.mplot3d import Axes3D
+import random
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -38,6 +41,7 @@ class cluster():
         self.cluster_algo = cluster_algo
         self.conf_matrix = dict()
         self.results_df = pd.DataFrame()
+        self.results_labels = dict()
 
     def evaluate_cluster(self,observed,predicted,k=0):
         """Evaluation of the classification using a number of different metrics"""
@@ -59,11 +63,12 @@ class cluster():
 
         eval_df = pd.DataFrame([res_dict])
         self.add_result(eval_df)
+        self.save_results_labels(predicted,k)
 
         if k:
-            print('Evaluation completed for k={}.'.format(k))
+            print('Evaluation of {} completed for k={}.'.format(self.cluster_algo,k))
         else:
-            print("Evalutuation completed.")
+            print("\nEvaluation of {} completed.".format(self.cluster_algo))
 
         return eval_df
 
@@ -71,6 +76,11 @@ class cluster():
         """Saves conf_matrix of the given instance"""
 
         self.conf_matrix[k] = conf_matrix_res
+
+    def save_results_labels(self,results,k):
+        """saves result labels of the given cluster"""
+
+        self.results_labels[k] = results
 
     def add_result(self, df):
         """Adds an evalaluation result to class's DataFrame for results"""
@@ -92,17 +102,21 @@ class cluster():
                     axis[i].set_title(col)
                     axis[i].set_xlabel('Value of K')
                     axis[i].set_ylabel('Score')
-                print(self.results_df)
+                print('\n',self.results_df)
                 plt.show()
             else:
-                print('Nothing to plot.\nEvaluation results for {}:'.format(self.cluster_algo))
-                print(self.results_df)
+                print('\nNothing to plot.\nEvaluation results for {}:'.format(self.cluster_algo))
+                print('\n',self.results_df)
 
         return self.results_df
 
     def get_confusion_matrix(self,k=0):
         """Returns the confusion matrix of a given k"""
         return self.conf_matrix[k]
+
+    def get_results_labels(self,k=0):
+        """Returns the labels predicted for a given k"""
+        return self.results_labels[k]
 
 def subtract_one(df,feature):
     """Subtracting 1 from a column in a dataframe"""
@@ -132,6 +146,34 @@ def DBSCAN_clustering(df,features):
     dbscan = dbscan.fit(df[features])
     return dbscan
 
+def plot_3dScatter(df,labels):
+"""LATHOS GENIKA KSANADES TO"""
+    def get_color():
+        """Return a color in hex"""
+        color = '#%06X' % randint(0, 0xFFFFFF)
+        return color
+
+    """Plot the datapoints of each cluster in 3d space"""
+
+    # define the colormap
+    cmap = plt.cm.jet
+    # extract all colors from the .jet map
+    cmaplist = [cmap(i) for i in range(cmap.N)]
+    # create the new map
+    cmap = cmap.from_list('Custom cmap', cmaplist, cmap.N)
+    distinct_labels = np.unique(labels)
+
+    label_color = dict()
+    input(sns.color_palette())
+    for label in distinct_labels:
+        label_color[label] = get_color()
+
+
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    ax.scatter(df['PCA1'],df['PCA2'],df['PCA3'],label=labels, c=label_color)
+    #plt.show()
+
 
 if __name__ == '__main__':
 
@@ -143,7 +185,7 @@ if __name__ == '__main__':
     # """We will try 20 different k values for n_clusters and keep the best-scored one"""
     # n_clusters = list(range(2,21))
     #
-    # kmeans_clusters = cluster(cluster_algo='kmeans')
+    # kmeans_clusters = cluster(cluster_algo='KMeans')
     # hac_clusters = cluster(cluster_algo='Hierarchical Agglomerative')
     # dbscan_cluster = cluster(cluster_algo='DBSCAN')
     #
@@ -182,21 +224,21 @@ if __name__ == '__main__':
 
 
 
-
     df_pca = pd.read_csv('./Data/PCA_Features.csv')
     features = ['PCA1','PCA2','PCA3']
     features_with_classes = features + ['CLASS', 'NSP']
 
 
     """We will try 20 different k values for n_clusters and keep the best-scored one"""
-    n_clusters = list(range(2,21))
+    n_clusters = list(range(2,15
+    ))
 
-    kmeans_clusters = cluster(cluster_algo='kmeans')
+    kmeans_clusters = cluster(cluster_algo='KMeans')
     hac_clusters = cluster(cluster_algo='Hierarchical Agglomerative')
     dbscan_cluster = cluster(cluster_algo='DBSCAN')
 
     """CLASS,NSP columns scale from [1-10]. CLUSTERS.lables_ scale in [0-9] so we subtract CLASS or NSP by 1"""
-    y_label = 'CLASS'
+    y_label = 'NSP'
     df_pca = subtract_one(df_pca,y_label)
     for k in n_clusters:
 
@@ -210,11 +252,16 @@ if __name__ == '__main__':
 
 
     kmeans_clusters.get_results(plot=True)
-    #hac_clusters.get_results(plot=True)
+    plot_3dScatter(df_pca,kmeans_clusters.get_results_labels(3))
+
+
+    # hac_clusters.get_results(plot=True)
+    # plot_3dScatter(df_pca,hac_clusters.get_results_labels(2))
 
 
     """Applying DBSCAN to our dataset"""
     cluster = DBSCAN_clustering(df=df_pca,features=features)
     dbscan_cluster.evaluate_cluster(observed=df_pca[y_label], predicted=cluster.labels_)
     dbscan_cluster.get_results(plot=True)
-    print(dbscan_cluster.get_confusion_matrix())
+    #print(dbscan_cluster.get_confusion_matrix())
+    plot_3dScatter(df_pca,dbscan_cluster.get_results_labels())

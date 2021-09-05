@@ -182,6 +182,8 @@ if __name__ == '__main__':
     #z_score_outliers(df, remove=True)
     #hist_features(df,features=features,plot=False,save=True)
 
+    """Rearange index numbers after deletions"""
+    df.index = np.arange(1,len(df)+1)
     df = normalize(df,features=features)
 
     pca_features = pca(df,features)
@@ -191,7 +193,8 @@ if __name__ == '__main__':
     pca_features['NSP'] = df['NSP']
 
 
-    #pca_features.to_csv('./Data/PCA_Features.csv',index=False, header=True)
 
-
-    #df.to_csv('./Data/cleanedCTG.csv',index=False, header=True)
+    # pca_features.to_csv('./Data/PCA_Features.csv',index=False, header=True)
+    #
+    #
+    # df.to_csv('./Data/cleanedCTG.csv',index=False, header=True)
