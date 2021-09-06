@@ -115,6 +115,8 @@ class cluster():
                 if plot:
                     print('\n',self.results_df)
                     plt.show()
+                else:
+                    plt.close()
             else:
                 print('\nNothing to or save plot.\nEvaluation results for {}:'.format(self.cluster_algo))
                 print('\n',self.results_df)
@@ -161,6 +163,8 @@ class cluster():
             print("3D plot was saved successfully.")
         if plot:
             plt.show()
+        else:
+            plt.close()
 
 def subtract_one(df,feature):
     """Subtracting 1 from a column in a dataframe"""
@@ -186,7 +190,7 @@ def DBSCAN_clustering(df,features):
     """Applies the DBSCAN algorithm to the given dataset"""
 
 
-    dbscan = DBSCAN(eps=0.5, min_samples=5)
+    dbscan = DBSCAN(eps=0.5, min_samples=20)
     dbscan = dbscan.fit(df[features])
     return dbscan
 
@@ -204,7 +208,7 @@ if __name__ == '__main__':
     features_with_classes = features + y_features
 
     """We will try 20 different k values for n_clusters and keep the best-scored one"""
-    n_clusters = list(range(2,21))
+    n_clusters = list(range(2,5))
 
     for y_label in y_features:
 
@@ -253,9 +257,6 @@ if __name__ == '__main__':
     features_with_classes = features + y_features
 
 
-    """We will try 20 different k values for n_clusters and keep the best-scored one"""
-    n_clusters = list(range(2,15))
-
 
     for y_label in y_features:
         print('\n',"-"*10,"Clustering for label: {} using PCA attributes".format(y_label),"-"*10,'\n')
@@ -285,4 +286,4 @@ if __name__ == '__main__':
         cluster_obj = DBSCAN_clustering(df=df_pca,features=features)
         dbscan_cluster.evaluate_cluster(observed=df_pca[y_label],y_label = y_label, predicted=cluster_obj.labels_)
         dbscan_cluster.get_results(plot=False,save=True)
-        dbscan_cluster.plot_3dScatter(save=True)
+        dbscan_cluster.plot_3dScatter(save=True,plot=False)
