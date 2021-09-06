@@ -17,7 +17,7 @@ from sklearn.decomposition import PCA
 """CONSTANTS"""
 BEFORE = '_WITH_OUTLIERS'
 AFTER = '_WITHOUT_OUTLIERS'
-parent_dir = './Plots'
+parent_dir = './Preprocess_Plots'
 
 def get_missing_null_nan(df,remove=False):
     """Find out how many null, missing or nan values we have. Drop them if remove==True"""
