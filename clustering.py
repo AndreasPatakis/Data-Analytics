@@ -14,10 +14,7 @@
         Completeness
 
     TO-DO:
-        CHECK AGAIN THE VALIDITY OF PCA_FEATURES.CSV
-        BECAUSE MISSING VALUES WHERE FOUND AND THAT
-        DOES NOT MAKE SENSE,
-        MAKE THE 3D SCATTER PLOTS
+        EXPERIMENT WITH THE PARAMETERS A BIT TO FIND BETTER RESULTS
 """
 
 """APPROACH: Use wide range of values for classification(the k) for all our clustering methods and score them
