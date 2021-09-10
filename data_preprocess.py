@@ -164,9 +164,10 @@ if __name__ == '__main__':
     df.columns = df.iloc[0,:]
     df = df.drop(df.index[0])
     features = ['LB','AC','FM','UC','DL','DS','DP','ASTV','MSTV','ALTV','MLTV','Width','Min','Max','Nmax','Nzeros','Mode','Mean','Median','Variance','Tendency']
+    features_y = ['A','B','C','D','E','AD','DE','LD','FS','SUSP']
     features_with_classes = features + ['CLASS', 'NSP']
-    df = df[features_with_classes]
 
+    df = df.dropna(axis=1, how='all')
 
     """Printing and removing missing, null and nan values"""
     df = get_missing_null_nan(df,remove=True)
@@ -174,13 +175,15 @@ if __name__ == '__main__':
     """Removing duplicated values"""
     df = remove_duplicates(df)
 
+
+
     """Find and remove outliers"""
-    #df = quantile_outliers(df,features=features,remove=True, plot=False, save=True)
+    df = quantile_outliers(df,features=features,remove=True, plot=False, save=True)
 
     #hist_features(df)
     #df['LB'].hist(bins=100, edgecolor='black')
-    #z_score_outliers(df, remove=True)
-    #hist_features(df,features=features,plot=False,save=True)
+    z_score_outliers(df, remove=True)
+    hist_features(df,features=features,plot=False,save=True)
 
     """Rearange index numbers after deletions"""
     df.index = np.arange(1,len(df)+1)
@@ -196,5 +199,6 @@ if __name__ == '__main__':
 
     # pca_features.to_csv('./Data/PCA_Features.csv',index=False, header=True)
     #
+    # df[features_with_classes].to_csv('./Data/cleanedCTG.csv',index=False, header=True)
     #
-    # df.to_csv('./Data/cleanedCTG.csv',index=False, header=True)
+    # df[features+features_y].to_csv('./Data/cleanedCTG_NN.csv',index=False, header=True)
