@@ -21,18 +21,20 @@ parent_dir = './Preprocess_Plots'
 
 def get_missing_null_nan(df,remove=False):
     """Find out how many null, missing or nan values we have. Drop them if remove==True"""
+    print("\nInitial number of records: {}\n".format(len(df)))
     for col in df.columns:
         missing_values = np.size(np.where(pd.isnull(df[col])))
         print('{} : {} / {} are null,missing or nan'.format(col, missing_values, len(df)))
     if remove:
         df = df.dropna()
+        print("\nRemoving values...\nFinal number of records: {}".format(len(df)))
     return df
 
 def remove_duplicates(df):
     duplicates = np.sum(df.duplicated(subset=None, keep='first'))
-    print("Found {} duplicates in the {} data.".format(duplicates,len(df)))
+    print("\n{}/{} of values were detected as duplicates.".format(duplicates,len(df)))
     df = df.drop_duplicates()
-    print("Data left: {}\n".format(len(df)))
+    print("Removing duplicates...\nData left: {}\n".format(len(df)))
     return df
 
 def boxplot_features(df,features):
@@ -47,7 +49,7 @@ def boxplot_features(df,features):
 
 def hist_features(df,features, plot=True,save=False):
     """Plot the histograms of the all features"""
-
+    print("Calculating histograms...")
     if save:
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
@@ -56,7 +58,7 @@ def hist_features(df,features, plot=True,save=False):
         path = '/'+col+'_HIST'
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.hist(df[col], bins=100, edgecolor='black')
+        ax.hist(df[col], bins=200, edgecolor='black')
         ax.set_title('Feature: '+col)
         ax.set_xlabel('Range of Values')
         ax.set_ylabel('Num of Observations')
@@ -65,6 +67,8 @@ def hist_features(df,features, plot=True,save=False):
             plt.savefig(parent_dir+'/'+col+path)
         if plot:
             plt.show()
+        else:
+            plt.close()
 
 def quantile_outliers(df,features, remove=False, plot=False, save=False):
     def get_IQR(df,col):
@@ -92,8 +96,8 @@ def quantile_outliers(df,features, remove=False, plot=False, save=False):
         quartile_max = df[col].quantile(max_q)
         quartile_min = df[col].quantile(min_q)
         print("\nClass feature: {}.".format(col))
-        print("Number of values greater than {} quantile: {}".format(max_q,np.sum(df[col]>quartile_max)))
-        print("Number of values lower than {} quantile: {}".format(min_q,np.sum(df[col]<quartile_min)))
+        print("Number of values greater than {} quartile: {}".format(max_q,np.sum(df[col]>quartile_max)))
+        print("Number of values lower than {} quartile: {}".format(min_q,np.sum(df[col]<quartile_min)))
 
         if plot or save:
             fig = plt.figure()
@@ -158,6 +162,7 @@ def pca(df,features,dimentions=3):
 
 
 if __name__ == '__main__':
+
     """Loading the data"""
     df = pd.read_excel('Data/OriginalCTG.xls','Data')
     df = df.iloc[:,10:]
@@ -169,31 +174,33 @@ if __name__ == '__main__':
 
     df = df.dropna(axis=1, how='all')
 
+
     """Printing and removing missing, null and nan values"""
     df = get_missing_null_nan(df,remove=True)
+
 
     """Removing duplicated values"""
     df = remove_duplicates(df)
 
 
-
     """Find and remove outliers"""
-    df = quantile_outliers(df,features=features,remove=True, plot=False, save=True)
+    #df = quantile_outliers(df,features=features,remove=True, plot=False, save=False)
 
-    #hist_features(df)
-    #df['LB'].hist(bins=100, edgecolor='black')
-    z_score_outliers(df, remove=True)
-    hist_features(df,features=features,plot=False,save=True)
+    #z_score_outliers(df,features=features, remove=True)
+    #hist_features(df,features=features,plot=False,save=True)
 
     """Rearange index numbers after deletions"""
     df.index = np.arange(1,len(df)+1)
     df = normalize(df,features=features)
+    #input(df)
 
     pca_features = pca(df,features)
     pca_features.index = np.arange(1,len(df)+1)
     pca_features.columns = ['PCA1', 'PCA2', 'PCA3']
     pca_features['CLASS'] = df['CLASS']
     pca_features['NSP'] = df['NSP']
+
+    input(pca_features)
 
 
 
