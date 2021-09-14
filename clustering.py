@@ -157,6 +157,9 @@ class cluster():
         for l in distinct_labels:
             lx = np.where(l == labels)
             ax.scatter(self.df['PCA1'].loc[lx],self.df['PCA2'].loc[lx],self.df['PCA3'].loc[lx],label='Label: '+str(l+1), c=color_label[l])
+        ax.set_xlabel('PCA1',fontsize=18)
+        ax.set_ylabel('PCA2',fontsize=18)
+        ax.set_zlabel('PCA3',fontsize=18)
         ax.legend()
         if save:
             plt.savefig(parent_dir+'/3D_PLOTS/3D_PLOT_'+self.cluster_algo+'_'+self.y_label+'_K_'+str(k))
@@ -208,39 +211,39 @@ if __name__ == '__main__':
     features_with_classes = features + y_features
 
     """We will try 20 different k values for n_clusters and keep the best-scored one"""
-    n_clusters = list(range(2,5))
-
-    for y_label in y_features:
-
-        print('\n',"-"*10,"Clustering for label: {} using all attributes".format(y_label),"-"*10,'\n')
-
-        kmeans_clusters = cluster(cluster_algo='KMeans',dataframe=df[features])
-        hac_clusters = cluster(cluster_algo='Hierarchical Agglomerative',dataframe=df[features])
-        dbscan_cluster = cluster(cluster_algo='DBSCAN',dataframe=df[features])
-
-        """CLASS,NSP columns scale from [1-10]. CLUSTERS.lables_ scale in [0-9] so we subtract CLASS or NSP by 1"""
-        df = subtract_one(df,y_label)
-
-        for k in n_clusters:
-
-            cluster_obj = kmeans_clustering(df=df,features=features,k=k)
-            kmeans_clusters.evaluate_cluster(observed=df[y_label],y_label=y_label, predicted=cluster_obj.labels_, k=k)
-            kmeans_clusters.plot_3dScatter(k,save=True)
-
-            cluster_obj = agglomerative_clustering(df=df,features=features,k=k)
-            hac_clusters.evaluate_cluster(observed=df[y_label],y_label=y_label, predicted=cluster_obj.labels_, k=k)
-            hac_clusters.plot_3dScatter(k,save=True)
-
-
-        kmeans_clusters.get_results(plot=False,save=True)
-        hac_clusters.get_results(plot=False, save=True)
-
-
-        """Applying DBSCAN to our dataset"""
-        cluster_obj = DBSCAN_clustering(df=df,features=features)
-        dbscan_cluster.evaluate_cluster(observed=df[y_label], y_label=y_label,predicted=cluster_obj.labels_)
-        dbscan_cluster.get_results(save=True)
-        dbscan_cluster.plot_3dScatter(save=True)
+    n_clusters = list(range(2,15))
+    #
+    # for y_label in y_features:
+    #
+    #     print('\n',"-"*10,"Clustering for label: {} using all attributes".format(y_label),"-"*10,'\n')
+    #
+    #     kmeans_clusters = cluster(cluster_algo='KMeans',dataframe=df[features])
+    #     hac_clusters = cluster(cluster_algo='Hierarchical Agglomerative',dataframe=df[features])
+    #     dbscan_cluster = cluster(cluster_algo='DBSCAN',dataframe=df[features])
+    #
+    #     """CLASS,NSP columns scale from [1-10]. CLUSTERS.lables_ scale in [0-9] so we subtract CLASS or NSP by 1"""
+    #     df = subtract_one(df,y_label)
+    #
+    #     for k in n_clusters:
+    #
+    #         cluster_obj = kmeans_clustering(df=df,features=features,k=k)
+    #         kmeans_clusters.evaluate_cluster(observed=df[y_label],y_label=y_label, predicted=cluster_obj.labels_, k=k)
+    #         kmeans_clusters.plot_3dScatter(k,save=True)
+    #
+    #         cluster_obj = agglomerative_clustering(df=df,features=features,k=k)
+    #         hac_clusters.evaluate_cluster(observed=df[y_label],y_label=y_label, predicted=cluster_obj.labels_, k=k)
+    #         hac_clusters.plot_3dScatter(k,save=True)
+    #
+    #
+    #     kmeans_clusters.get_results(plot=False,save=True)
+    #     hac_clusters.get_results(plot=False, save=True)
+    #
+    #
+    #     """Applying DBSCAN to our dataset"""
+    #     cluster_obj = DBSCAN_clustering(df=df,features=features)
+    #     dbscan_cluster.evaluate_cluster(observed=df[y_label], y_label=y_label,predicted=cluster_obj.labels_)
+    #     dbscan_cluster.get_results(save=True)
+    #     dbscan_cluster.plot_3dScatter(save=True)
 
 
 
@@ -271,11 +274,11 @@ if __name__ == '__main__':
 
             cluster_obj = kmeans_clustering(df=df_pca,features=features,k=k)
             kmeans_clusters.evaluate_cluster(observed=df_pca[y_label],y_label=y_label, predicted=cluster_obj.labels_, k=k)
-            kmeans_clusters.plot_3dScatter(k,save=True)
+            kmeans_clusters.plot_3dScatter(k,save=True, plot=False)
 
             cluster_obj = agglomerative_clustering(df=df_pca,features=features,k=k)
             hac_clusters.evaluate_cluster(observed=df_pca[y_label],y_label=y_label, predicted=cluster_obj.labels_, k=k)
-            hac_clusters.plot_3dScatter(k,save=True)
+            hac_clusters.plot_3dScatter(k,save=True, plot=False)
 
 
         kmeans_clusters.get_results(plot=False, save=True)

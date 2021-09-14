@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.decomposition import PCA
 
 
@@ -153,6 +153,12 @@ def normalize(df,features):
     df[features] = scaler.fit_transform(df[features])
     return df
 
+def standarize(df,features):
+    """Using Standard Scaler to standarize data"""
+    scaler = StandardScaler()
+    df[features] = scaler.fit_transform(df[features])
+    return df
+
 def pca(df,features,dimentions=3):
     """Applying Principle Component Analysis to reduce our dimentions to 3"""
     pca = PCA(n_components=dimentions)
@@ -191,8 +197,8 @@ if __name__ == '__main__':
 
     """Rearange index numbers after deletions"""
     df.index = np.arange(1,len(df)+1)
-    df = normalize(df,features=features)
-    #input(df)
+
+    df = standarize(df,features=features)
 
     pca_features = pca(df,features)
     pca_features.index = np.arange(1,len(df)+1)
@@ -200,12 +206,13 @@ if __name__ == '__main__':
     pca_features['CLASS'] = df['CLASS']
     pca_features['NSP'] = df['NSP']
 
-    input(pca_features)
+    df = normalize(df, features=features)
+    pca_features = normalize(pca_features, features=['PCA1', 'PCA2', 'PCA3'])
 
 
 
-    # pca_features.to_csv('./Data/PCA_Features.csv',index=False, header=True)
-    #
-    # df[features_with_classes].to_csv('./Data/cleanedCTG.csv',index=False, header=True)
-    #
-    # df[features+features_y].to_csv('./Data/cleanedCTG_NN.csv',index=False, header=True)
+    pca_features.to_csv('./Data/PCA_Features.csv',index=False, header=True)
+
+    df[features_with_classes].to_csv('./Data/cleanedCTG.csv',index=False, header=True)
+
+    df[features+features_y].to_csv('./Data/cleanedCTG_NN.csv',index=False, header=True)
