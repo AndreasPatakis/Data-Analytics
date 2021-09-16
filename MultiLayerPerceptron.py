@@ -85,9 +85,9 @@ if __name__ == '__main__':
 
     """Intializing our model"""
     model = tf.keras.models.Sequential()
-    model.add(tf.keras.layers.Dense(input_layer, activation=tf.nn.relu))
-    model.add(tf.keras.layers.Dense(layer_1, activation=tf.nn.relu))
-    model.add(tf.keras.layers.Dense(layer_2, activation=tf.nn.relu))
+    model.add(tf.keras.layers.Dense(input_layer, activation=tf.nn.sigmoid))
+    model.add(tf.keras.layers.Dense(layer_1, activation=tf.nn.sigmoid))
+    model.add(tf.keras.layers.Dense(layer_2, activation=tf.nn.sigmoid))
     model.add(tf.keras.layers.Dense(output_layer, activation=tf.nn.softmax))
 
     model.compile(optimizer='adam',
